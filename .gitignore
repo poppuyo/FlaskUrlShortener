@@ -107,3 +107,27 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.idb
+*.$memlist
+*.bat
+FlaskUrlShortener/urls.db
+bin/wfastcgi.py
+bin/Microsoft.PythonTools.AzureSetup.exe.config
+*.ps1
+obj/Debug/attach_server.py
+obj/Debug/FlaskUrlShortener.pyproj.FileListAbsolute.txt
+obj/Debug/__main__.py
+*.db
+*.config
+*.cfg
+requirements.txt
+ptvs_virtualenv_proxy.py
+*.pyproj
+flaskenv/pip-selfcheck.json
+*.ver
+flaskenv/.ptvs/AnalysisLog.txt
+FlaskUrlShortener/sql.py
+obj/Debug/visualstudio_py_util.py
+obj/Debug/__init__.py
+obj/Debug/visualstudio_py_debugger.py
+obj/Debug/visualstudio_py_repl.py
