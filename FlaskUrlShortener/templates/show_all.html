@@ -1,0 +1,27 @@
+﻿{% extends "layout.html" %}
+{% block body %}
+<form action="{{ url_for('add_url') }}" method=post class=add-url>
+    <dl>
+        <dt>Please enter a URL to shorten:
+        <dd><input type=text size=30 name=url>
+        <dd><input type=submit value=Shorten>
+    </dl>
+</form>
+<form action="{{ url_for('get_url') }}" method=post class=get-url>
+    <dl>
+        <dt>Please enter a shortened URL to expand:
+        <dd><input type=text size=30 name=shortened>
+        <dd><input type=submit value=Expand>
+    </dl>
+</form>
+<ul class=records>
+    {% for record in records %}
+    <li>
+        {{ record.shortened }}<br />
+        ㄴ{{ record.url }}
+        {% else %}
+    <li>
+        <em>We've come up empty!</em>
+        {% endfor %}
+</ul>
+{% endblock %}

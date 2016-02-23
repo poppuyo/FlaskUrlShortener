@@ -1,0 +1,10 @@
+﻿<!doctype html>
+<title>yet another URL shortener</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='content/site.css') }}">
+<div class=page>
+    <h1>yet another URL shortener</h1>
+    {% for message in get_flashed_messages() %}
+    <div class=flash>{{ message }}</div>
+    {% endfor %}
+    {% block body %}{% endblock %}
+</div>
