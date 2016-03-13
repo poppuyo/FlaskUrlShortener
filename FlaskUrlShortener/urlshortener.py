@@ -67,9 +67,10 @@ def find_shortened(shortened):
         records = [dict(id=row[0], url=row[1], shortened=row[2]) for row in cur.fetchall()]
         return render_template('show_all.html', records=records)
     
-@app.route('/get', methods=['POST'])
+@app.route('/get', methods=['GET'])
 def get_url():
-    requested_shortened = request.form['shortened'].rstrip()
+    #requested_shortened = request.form['shortened'].rstrip()
+    requested_shortened = request.args.get('shortened')
     cur = g.db.execute('select url from urls where shortened=?', [requested_shortened])
     try:
         record = [dict(url=row[0]) for row in cur.fetchall()]
@@ -115,4 +116,4 @@ def shorten(url):
     #return base62_encode(int(m.hexdigest(), 16))[:8] # naive implementation: use 8 chars, ignore dupes
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
