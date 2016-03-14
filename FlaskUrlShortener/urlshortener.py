@@ -52,7 +52,6 @@ def teardown_request(exception):
 def show_all():
     cur = g.db.execute('select * from urls order by id desc')
     records = [dict(id=row[0], url=row[1], shortened=row[2]) for row in cur.fetchall()]
-    # return render_template('show_all.html', records=records) # hide it all!
     return render_template('show_all.html', records=records)
 
 @app.route('/<path:shortened>')
@@ -63,13 +62,12 @@ def find_shortened(shortened):
         redirectto = record[0]['url']
         return redirect(redirectto, code=302)
     except:
-        cur = g.db.execute('select * from urls order by id desc')
+        cur = g.db.execute('select * from urls order by id desc limit 1')
         records = [dict(id=row[0], url=row[1], shortened=row[2]) for row in cur.fetchall()]
         return render_template('show_all.html', records=records)
     
 @app.route('/get', methods=['GET'])
 def get_url():
-    #requested_shortened = request.form['shortened'].rstrip()
     requested_shortened = request.args.get('shortened')
     cur = g.db.execute('select url from urls where shortened=?', [requested_shortened])
     try:
@@ -82,14 +80,8 @@ def get_url():
 
 @app.route('/add', methods=['POST'])
 def add_url():
-    #g.db.execute('insert into urls (url, shortened) values (?, ?)', [request.form['url'], request.form['shortened']])
     stripped_url = request.form['url'].rstrip().rstrip("/")
     parsed_url = urlparse(stripped_url)
-
-    #if (parsed_url.scheme == "http") or (parsed_url.scheme == "https"):
-    #    g.db.execute('insert or ignore into urls (url, shortened) values (?, ?)', [stripped_url, shorten(stripped_url)])
-    #    g.db.commit()
-    #    flash('New url was successfully entered')
 
     if (parsed_url.scheme == "http") or (parsed_url.scheme == "https"):
         untrimmed_shortened = shorten(stripped_url)
@@ -113,7 +105,6 @@ def add_url():
 def shorten(url):
     m = hashlib.sha256(url.encode('utf-8'))
     return base62_encode(int(m.hexdigest(), 16))
-    #return base62_encode(int(m.hexdigest(), 16))[:8] # naive implementation: use 8 chars, ignore dupes
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
