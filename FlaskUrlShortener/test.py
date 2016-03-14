@@ -2,6 +2,7 @@
 # helper video at https://www.youtube.com/watch?v=1aHNs1aEATg&feature=youtu.be
 
 import unittest
+import sys
 
 from urlshortener import app
 #from flask.ext.testing import TestCase
@@ -69,4 +70,6 @@ class FlaskUrlShortenerLogicTestCases(unittest.TestCase):
 if __name__ == '__main__':
     #unittest.main()
     suite = unittest.TestLoader().loadTestsFromTestCase(FlaskUrlShortenerBasicTestCases)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    ret = not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
+    # return an exit code - http://stackoverflow.com/a/24972157
+    sys.exit(ret)
