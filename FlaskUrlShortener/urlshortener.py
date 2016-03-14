@@ -3,8 +3,15 @@
 
 # imports
 import os
+
+if os.environ.get("isHeroku") == '1':
+    isProd = True
+    import psycopg2
+else:
+    isProd = False
+    import sqlite3
+
 import logging
-import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, \
     abort, render_template, flash
 from contextlib import closing
@@ -18,25 +25,38 @@ from baser2 import base62_encode
 app = Flask(__name__)
 
 # conf
-app.config.update(dict(
-    DATABASE = os.path.join(app.root_path, 'urls.db'),
-    DEBUG = True,
-    SECRET_KEY = 'devkey',
-    USERNAME = 'admin',
-    PASSWORD = 'default',
-))
-app.config.from_object(__name__)
+if isProd:
+    urlparse.uses_netloc.append("postgres")
+    url = urlparse.urlparse(os.environ["DATABASE_URL"])
+else:
+    app.config.update(dict(
+        DATABASE = os.path.join(app.root_path, 'urls.db'),
+        DEBUG = True,
+        SECRET_KEY = 'devkey',
+        USERNAME = 'admin',
+        PASSWORD = 'default',
+    ))
+    app.config.from_object(__name__)
 
 def connect_db():
-    return sqlite3.connect(app.config['DATABASE'])
+    if isProd:
+        return psycopg2.connect(
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port
+        )
+    else:
+        return sqlite3.connect(app.config['DATABASE'])
 
 def init_db():
     with closing(connect_db()) as db:
         with app.open_resource(os.path.join(app.root_path, 'schema.sql'), mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
-
-init_db()
+if not isProd:
+    init_db()
 
 @app.before_request
 def before_request():
@@ -50,7 +70,7 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_all():
-    cur = g.db.execute('select * from urls order by id desc')
+    cur = g.db.execute('select * from urls order by id desc limit 1')
     records = [dict(id=row[0], url=row[1], shortened=row[2]) for row in cur.fetchall()]
     return render_template('show_all.html', records=records)
 
