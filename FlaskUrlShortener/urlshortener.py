@@ -158,7 +158,7 @@ def shorten(url):
     return base62_encode(int(m.hexdigest(), 16))
 
 if __name__ == '__main__':
-    #app.debug = True
+    app.debug = True
     #grab port from heroku, else be on 5000 as usual
     port = int(os.environ.get("PORT", 5000)) 
     app.run(host='0.0.0.0', port=port)
