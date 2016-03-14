@@ -8,7 +8,7 @@ install:
 
 # command to run tests
 script:
-  - FlaskUrlShortener/test.py
+  - python FlaskUrlShortener/test.py
 
 # notification options
 notifications:
