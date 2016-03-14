@@ -130,13 +130,8 @@ def add_url():
             try:
                 if isProd:
                     cur = g.db.cursor()
-                    print("started")
-                    print(leftstring_length)
-                    # crazy upsert CTE from http://stackoverflow.com/a/8702291
+                    # UPSERT-like CTE for postgresql from http://stackoverflow.com/a/8702291
                     cur.execute('WITH new_values (url, shortened) as ( values (%s, %s) ), upsert as ( update urls u set url = nv.url, shortened = nv.shortened FROM new_values nv WHERE u.url = nv.url RETURNING u.* ) INSERT INTO urls (url, shortened) SELECT url, shortened FROM new_values WHERE NOT EXISTS (SELECT 1 FROM upsert up WHERE up.url = new_values.url)', [stripped_url, untrimmed_shortened[:leftstring_length]])
-                    # less safe upsert-like from http://stackoverflow.com/a/6527838
-                    #cur.execute('UPDATE urls SET url=%s, shortened=%s where url=%s', [stripped_url, untrimmed_shortened[:leftstring_length], stripped_url])
-                    #cur.execute('INSERT INTO urls (url, shortened) SELECT %s, %s WHERE NOT EXISTS (SELECT 1 FROM urls where url=%s)', [stripped_url, untrimmed_shortened[:leftstring_length], stripped_url])
                     g.db.commit()
                 else:
                     # UPSERT-like behavior http://stackoverflow.com/a/15277374
@@ -146,7 +141,7 @@ def add_url():
                 flash('New url was successfully entered')
                 break
             except:
-                # let's get a longer shortened string
+                # This case handles shortened-URL collisions by inserting with one more character
                 leftstring_length += 1
                 break
     else:
