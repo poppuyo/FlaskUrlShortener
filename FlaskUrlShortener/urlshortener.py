@@ -112,6 +112,17 @@ def add_url():
     # following conventions of treating trailing slashes as pointing to slashless
     # http://stackoverflow.com/questions/5948659/when-should-i-use-a-trailing-slash-in-my-url
     stripped_url = request.form['url'].rstrip(' ').rstrip('/')
+
+    # handle overly long urls
+    if len(stripped_url) > 2083:
+        urllimit_doc = 'http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers'
+        flash(Markup('Please enter a URL <a href=' + urllimit_doc  + '>shorter than 2083</a> characters'))
+        return redirect(url_for('show_all'))
+    # and overly short ones
+    elif len(stripped_url) == 0:
+        flash('Invalid URL for shortening, try again!')
+        return redirect(url_for('show_all'))
+
     parsed_url = urlparse(stripped_url)
 
     # if the user forgot to put a scheme, let's be friendly and assume http
