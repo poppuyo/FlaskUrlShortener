@@ -18,7 +18,6 @@ from contextlib import closing
 import hashlib
 from urllib.parse import urlparse
 
-from baser import base_encode
 from baser2 import base62_encode
 
 # create our app
