@@ -13,7 +13,7 @@ else:
 
 import logging
 from flask import Flask, request, session, g, redirect, url_for, \
-    abort, render_template, flash
+    abort, render_template, flash, Markup
 from contextlib import closing
 import hashlib
 from urllib.parse import urlparse
@@ -72,14 +72,8 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_all():
-    if isProd:
-       cur = g.db.cursor()
-       cur.execute('select * from urls order by id desc limit 1')
-       g.db.commit()
-    else:
-       cur = g.db.execute('select * from urls order by id desc limit 1')
-    records = [dict(id=row[0], url=row[1], shortened=row[2]) for row in cur.fetchall()]
-    return render_template('show_all.html', records=records)
+    #flash(Markup('Welcome to <a href=' + request.url_root + ' class="alert-link"> here </a>'))
+    return render_template('show_all.html')
 
 @app.route('/<path:shortened>')
 def find_shortened(shortened):
@@ -93,13 +87,7 @@ def find_shortened(shortened):
         redirectto = record[0]['url']
         return redirect(redirectto, code=302)
     except:
-        if isProd:
-            cur = g.db.cursor()
-            cur.execute('SELECT * from urls order by id desc limit 1')
-        else:
-            cur = g.db.execute('select * from urls order by id desc limit 1')
-        records = [dict(id=row[0], url=row[1], shortened=row[2]) for row in cur.fetchall()]
-        return render_template('show_all.html', records=records)
+        return render_template('show_all.html')
     
 @app.route('/get', methods=['GET'])
 def get_url():
@@ -112,7 +100,8 @@ def get_url():
     try:
         record = [dict(url=row[0]) for row in cur.fetchall()]
         expanded = record[0]['url']
-        flash(url_for('find_shortened', shortened=requested_shortened) + ' expanded to the following URL: ' + expanded)
+        short_url = request.url_root.rstrip('/') + url_for('find_shortened', shortened=requested_shortened)
+        flash(Markup('<a href=' + short_url + '>' + short_url + '</a> expanded to the following URL: <a href=' + expanded + '>' + expanded + '</a>'))
     except:
         flash('No match for requested URL for expanding, try again!')
     return redirect(url_for('show_all'))
@@ -138,7 +127,10 @@ def add_url():
                     g.db.execute('UPDATE urls SET url=?, shortened=? WHERE url=?', [stripped_url, untrimmed_shortened[:leftstring_length], stripped_url])
                     g.db.execute('INSERT OR IGNORE INTO urls (url, shortened) VALUES (?, ?)', [stripped_url, untrimmed_shortened[:leftstring_length]])
                     g.db.commit()
-                flash('New url was successfully entered')
+                #flash('preadded')
+                short_url = request.url_root + untrimmed_shortened[:leftstring_length]
+                flash(Markup('<a href=' + short_url + '>' + short_url + '</a> now redirects to the following URL: <a href=' + stripped_url + '>' + stripped_url + '</a>'))
+                #flash('added!')
                 break
             except:
                 # This case handles shortened-URL collisions by inserting with one more character

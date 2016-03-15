@@ -14,14 +14,4 @@
         <dd><input type=submit value=Expand>
     </dl>
 </form>
-<ul class=records>
-    {% for record in records %}
-    <li>
-        {{ record.shortened }}<br />
-        ㄴ{{ record.url }}
-        {% else %}
-    <li>
-        <em>We've come up empty!</em>
-        {% endfor %}
-</ul>
 {% endblock %}
