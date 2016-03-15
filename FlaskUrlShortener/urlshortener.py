@@ -92,6 +92,8 @@ def find_shortened(shortened):
 @app.route('/get', methods=['GET'])
 def get_url():
     requested_shortened = request.args.get('shortened')
+    # let users put <site>/<shortened> if they want
+    requested_shortened = requested_shortened.lstrip(request.url_root)
     if isProd:
         cur = g.db.cursor()
         cur.execute('SELECT url FROM urls where shortened=%s', [requested_shortened])
@@ -108,9 +110,17 @@ def get_url():
 
 @app.route('/add', methods=['POST'])
 def add_url():
-    stripped_url = request.form['url'].rstrip().rstrip("/")
+    # following conventions of treating trailing slashes as pointing to slashless
+    # http://stackoverflow.com/questions/5948659/when-should-i-use-a-trailing-slash-in-my-url
+    stripped_url = request.form['url'].rstrip(' ').rstrip('/')
     parsed_url = urlparse(stripped_url)
 
+    # if the user forgot to put a scheme, let's be friendly and assume http
+    if not parsed_url.scheme:
+        stripped_url = 'http://' + stripped_url
+        parsed_url = urlparse(stripped_url)
+
+    # we'll be http or https schemes only
     if (parsed_url.scheme == "http") or (parsed_url.scheme == "https"):
         untrimmed_shortened = shorten(stripped_url)
         leftstring_length = 8
