@@ -50,7 +50,7 @@ class FlaskUrlShortenerBasicTestCases(unittest.TestCase):
     # Ensure that we are rejecting a bad URL
     def test_basic_bad_url(self):
         tester = app.test_client(self)
-        response = tester.post('/add', data=dict(url="12345"), follow_redirects = True)
+        response = tester.post('/add', data=dict(url="hxxp://12345"), follow_redirects = True)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(b'Invalid URL' in response.data)
 
