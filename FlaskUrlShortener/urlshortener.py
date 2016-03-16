@@ -124,14 +124,16 @@ def add_url():
     elif len(stripped_url) == 0:
         flash('Invalid URL for shortening, try again!')
         return redirect(url_for('show_all'))
-    elif not parsed_url.netloc:
-        flash('Invalid URL for shortening, try again!')
-        return redirect(url_for('show_all'))    
 
     # if the user forgot to put a scheme, let's be friendly and assume http
     if not parsed_url.scheme:
         stripped_url = 'http://' + stripped_url
         parsed_url = urlparse(stripped_url)
+    
+    # this covers the input: 'http(s)://'
+    if parsed_url.netloc=='':
+        flash('Invalid URL for shortening, try again!')
+        return redirect(url_for('show_all'))
 
     # we'll be http or https schemes only
     if (parsed_url.scheme == "http") or (parsed_url.scheme == "https"):
