@@ -91,12 +91,12 @@ def find_shortened(shortened):
 def get_url():
     requested_shortened = request.args.get('shortened')
     # let users put <site>/<shortened> if they want
-    requested_shortened = requested_shortened.lstrip(request.url_root)
+    requested_shortened = requested_shortened.replace(request.url_root, '')
     if isProd:
         cur = g.db.cursor()
         cur.execute('SELECT url FROM urls where shortened=%s', [requested_shortened])
     else:
-        cur = g.db.execute('select url from urls where shortened=?', [requested_shortened])
+        cur = g.db.execute('SELECT url FROM urls where shortened=?', [requested_shortened])
     try:
         record = [dict(url=row[0]) for row in cur.fetchall()]
         expanded = record[0]['url']
