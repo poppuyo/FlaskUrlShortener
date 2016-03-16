@@ -134,7 +134,8 @@ def add_url():
         untrimmed_shortened = shorten(stripped_url)
         leftstring_length = 8
 
-        while True:
+        # 43 is the answer to life, the universe and 'len(base62_encode(int(m.hexdigest(),16)))'
+        while leftstring_length <= 43:
             try:
                 if isProd:
                     cur = g.db.cursor()
@@ -159,13 +160,13 @@ def add_url():
                 flash(Markup('<a href=' + short_url + '>' + short_url + '</a>' + \
                              ' now redirects to the following URL: ' + \
                              '<a href=' + stripped_url + '>' + stripped_url + '</a>'))
-                break
+                return redirect(url_for('show_all'))
             except:
                 # This case handles shortened-URL collisions by inserting with one more character
                 leftstring_length += 1
-                break
-    else:
-        flash('Invalid URL for shortening, try again!')
+
+    # if we've gotten here, url shortening has failed
+    flash('Invalid URL for shortening, try again!')
     return redirect(url_for('show_all'))
 
 def shorten(url):
