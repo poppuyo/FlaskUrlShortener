@@ -85,6 +85,7 @@ def find_shortened(shortened):
         redirectto = record[0]['url']
         return redirect(redirectto, code=302)
     except:
+        flash('No match for requested URL for expanding, try again!')
         return render_template('show_all.html')
     
 @app.route('/get', methods=['GET'])
