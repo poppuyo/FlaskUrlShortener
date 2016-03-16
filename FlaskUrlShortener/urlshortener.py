@@ -85,7 +85,7 @@ def find_shortened(shortened):
         redirectto = record[0]['url']
         return redirect(redirectto, code=302)
     except:
-        flash('No match for requested URL for expanding, try again!')
+        flash(Markup('No match for requested shortened URL (' + request.url_root + shortened + '), try again!'))
         return render_template('show_all.html')
     
 @app.route('/get', methods=['GET'])
@@ -113,6 +113,8 @@ def add_url():
     # http://stackoverflow.com/questions/5948659/when-should-i-use-a-trailing-slash-in-my-url
     stripped_url = request.form['url'].rstrip(' ').rstrip('/')
 
+    parsed_url = urlparse(stripped_url)
+
     # handle overly long urls
     if len(stripped_url) > 2083:
         urllimit_doc = 'http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers'
@@ -122,8 +124,9 @@ def add_url():
     elif len(stripped_url) == 0:
         flash('Invalid URL for shortening, try again!')
         return redirect(url_for('show_all'))
-
-    parsed_url = urlparse(stripped_url)
+    elif not parsed_url.netloc:
+        flash('Invalid URL for shortening, try again!')
+        return redirect(url_for('show_all'))    
 
     # if the user forgot to put a scheme, let's be friendly and assume http
     if not parsed_url.scheme:
