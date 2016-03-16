@@ -4,12 +4,13 @@
 # imports
 import os
 
+
 if os.environ.get("isHeroku") == '1':
     isProd = True
-    import psycopg2
+    import psycopg2 #postgresql for the heroku side
 else:
     isProd = False
-    import sqlite3
+    import sqlite3 #sqlite for the local side
 
 import logging
 from flask import Flask, request, session, g, redirect, url_for, \
@@ -17,7 +18,6 @@ from flask import Flask, request, session, g, redirect, url_for, \
 from contextlib import closing
 import hashlib
 from urllib.parse import urlparse
-
 from baser2 import base62_encode
 
 # create our app
@@ -71,16 +71,15 @@ def teardown_request(exception):
 
 @app.route('/')
 def show_all():
-    #flash(Markup('Welcome to <a href=' + request.url_root + ' class="alert-link"> here </a>'))
     return render_template('show_all.html')
 
 @app.route('/<path:shortened>')
 def find_shortened(shortened):
     if isProd:
         cur = g.db.cursor()
-        cur.execute('SELECT url FROM urls where shortened=%s', [shortened]) 
+        cur.execute('SELECT url FROM urls WHERE shortened=%s', [shortened]) 
     else:
-        cur = g.db.execute('select url from urls where shortened=?', [shortened])
+        cur = g.db.execute('SELECT url FROM urls WHERE shortened=?', [shortened])
     try:
         record = [dict(url=row[0]) for row in cur.fetchall()]
         redirectto = record[0]['url']
@@ -140,17 +139,26 @@ def add_url():
                 if isProd:
                     cur = g.db.cursor()
                     # UPSERT-like CTE for postgresql from http://stackoverflow.com/a/8702291
-                    cur.execute('WITH new_values (url, shortened) as ( values (%s, %s) ), upsert as ( update urls u set url = nv.url, shortened = nv.shortened FROM new_values nv WHERE u.url = nv.url RETURNING u.* ) INSERT INTO urls (url, shortened) SELECT url, shortened FROM new_values WHERE NOT EXISTS (SELECT 1 FROM upsert up WHERE up.url = new_values.url)', [stripped_url, untrimmed_shortened[:leftstring_length]])
+                    cur.execute('WITH new_values (url, shortened) as ( values (%s, %s) ), ' + \
+                                'upsert as ' + \
+                                  '( update urls u set url = nv.url, shortened = nv.shortened ' + \
+                                  ' FROM new_values nv WHERE u.url = nv.url RETURNING u.* )' + \
+                                ' INSERT INTO urls (url, shortened) ' + \
+                                ' SELECT url, shortened FROM new_values WHERE NOT EXISTS ' + \
+                                  ' (SELECT 1 FROM upsert up WHERE up.url = new_values.url)',
+                                 [stripped_url, untrimmed_shortened[:leftstring_length]])
                     g.db.commit()
                 else:
                     # UPSERT-like behavior http://stackoverflow.com/a/15277374
-                    g.db.execute('UPDATE urls SET url=?, shortened=? WHERE url=?', [stripped_url, untrimmed_shortened[:leftstring_length], stripped_url])
-                    g.db.execute('INSERT OR IGNORE INTO urls (url, shortened) VALUES (?, ?)', [stripped_url, untrimmed_shortened[:leftstring_length]])
+                    g.db.execute('UPDATE urls SET url=?, shortened=? WHERE url=?', 
+                                 [stripped_url, untrimmed_shortened[:leftstring_length], stripped_url])
+                    g.db.execute('INSERT OR IGNORE INTO urls (url, shortened) VALUES (?, ?)',
+                                 [stripped_url, untrimmed_shortened[:leftstring_length]])
                     g.db.commit()
-                #flash('preadded')
                 short_url = request.url_root + untrimmed_shortened[:leftstring_length]
-                flash(Markup('<a href=' + short_url + '>' + short_url + '</a> now redirects to the following URL: <a href=' + stripped_url + '>' + stripped_url + '</a>'))
-                #flash('added!')
+                flash(Markup('<a href=' + short_url + '>' + short_url + '</a>' + \
+                             ' now redirects to the following URL: ' + \
+                             '<a href=' + stripped_url + '>' + stripped_url + '</a>'))
                 break
             except:
                 # This case handles shortened-URL collisions by inserting with one more character
